@@ -1,7 +1,7 @@
 import EventEmitter = require("events");
 import { State } from "./State";
 
-export class Store extends EventEmitter {
+export class Store<T = any> extends EventEmitter {
     private _state: State;
     private _name: string;
 
@@ -16,25 +16,27 @@ export class Store extends EventEmitter {
         return this._name;
     }
 
-    getState(): string {
+    getState(): T {
         return this._state.getStateFor(this._name);
     }
 
-    setState(state: any): Store {
+    setState(state: T): Store<T> {
+        this.emit("set-state", state);
         this._state.setStateFor(this._name, state);
         return this;
     }
 
-    updateState(fn: (prev: any) => any) {
+    updateState(fn: (prev: T) => T) {
         return this.setState(fn(this.getState()));
     }
 
-    unsafeSetState(state: any): Store {
+    unsafeSetState(state: T): Store<T> {
+        this.emit("unsafe-set-state", state);
         this._state.unsafeSetStateFor(this._name, state);
         return this;
     }
 
-    unsafeUpdateState(fn: (prev: any) => any) {
+    unsafeUpdateState(fn: (prev: T) => T) {
         return this.unsafeSetState(fn(this.getState()));
     }
 }

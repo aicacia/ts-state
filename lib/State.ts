@@ -12,12 +12,12 @@ export class State extends EventEmitter {
         this._stores = {};
     }
 
-    createStore(name: string, initialState: any = {}): Store {
+    createStore<T>(name: string, initialState?: T): Store<T> {
         const store = new Store(this, name),
             state = { ...this._state },
             stores = { ...this._stores };
 
-        state[name] = initialState;
+        state[name] = initialState || {};
         stores[name] = store;
 
         this._state = state;
@@ -88,15 +88,15 @@ export class State extends EventEmitter {
     ): State {
         const nextState = { ...this._state };
 
-        nextState[name] = state;
         this.emit(event, name, state);
+        nextState[name] = state;
 
         return this._setState(rootEvent, nextState);
     }
 
     private _setState(event: string, state: any): State {
-        this._state = state;
         this.emit(event, state);
+        this._state = state;
         return this;
     }
 }
