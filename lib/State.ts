@@ -23,7 +23,7 @@ export class State extends EventEmitter {
         this._state = state;
         this._stores = stores;
 
-        this.emit("create-store", name);
+        this.emit("create-store", store);
 
         return store;
     }
@@ -41,7 +41,7 @@ export class State extends EventEmitter {
             this._state = state;
             this._stores = stores;
 
-            this.emit("delete-store", name);
+            this.emit("delete-store", store);
         }
 
         return store;
