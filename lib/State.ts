@@ -47,7 +47,7 @@ export class State extends EventEmitter {
         return store;
     }
 
-    getStore(name: string): Store | null {
+    getStore<T = any>(name: string): Store<T> | null {
         return this._stores[name] || null;
     }
 
