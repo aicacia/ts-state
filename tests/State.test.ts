@@ -30,59 +30,43 @@ tape("State createStore, setState, updateState", (assert: tape.Test) => {
     assert.end();
 });
 
-tape("State unsafe", (assert: tape.Test) => {
-    const state = new State(),
-        store = state.createStore("test", { count: 0 });
+tape(
+    "State no emit createStore, setState, updateState",
+    (assert: tape.Test) => {
+        const state = new State(),
+            store = state.createStore("test", { count: 0 });
 
-    let eventSetStateCalled = false,
-        eventSetStateForCalled = false,
-        eventUnsafeSetStateCalled = false,
-        eventUnsafeSetStateForCalled = false;
+        let eventSetStateCalled = false,
+            eventSetStateForCalled = false;
 
-    const reset = () => {
-        eventSetStateCalled = false;
-        eventSetStateForCalled = false;
-        eventUnsafeSetStateCalled = false;
-        eventUnsafeSetStateForCalled = false;
-    };
+        const reset = () => {
+            eventSetStateCalled = false;
+            eventSetStateForCalled = false;
+        };
 
-    state.on("set-state", () => {
-        eventSetStateCalled = true;
-    });
+        state.on("set-state", () => {
+            eventSetStateCalled = true;
+        });
 
-    state.on("set-state-for", name => {
-        eventSetStateForCalled = true;
-        assert.equals(name, "test");
-    });
+        state.on("set-state-for", name => {
+            eventSetStateForCalled = true;
+            assert.equals(name, "test");
+        });
 
-    state.on("unsafe-set-state", () => {
-        eventUnsafeSetStateCalled = true;
-    });
+        store.setState({ count: 1 });
+        assert.deepEquals(store.getState(), { count: 1 });
 
-    state.on("unsafe-set-state-for", name => {
-        eventUnsafeSetStateForCalled = true;
-        assert.equals(name, "test");
-    });
+        assert.equals(eventSetStateCalled, true);
+        assert.equals(eventSetStateForCalled, true);
 
-    store.setState({ count: 1 });
-    assert.deepEquals(store.getState(), { count: 1 });
+        reset();
 
-    assert.equals(eventSetStateCalled, true);
-    assert.equals(eventSetStateForCalled, true);
+        store.noEmitSetState({ count: 0 });
+        assert.deepEquals(store.getState(), { count: 0 });
 
-    assert.equals(eventUnsafeSetStateCalled, false);
-    assert.equals(eventUnsafeSetStateForCalled, false);
+        assert.equals(eventSetStateCalled, false);
+        assert.equals(eventSetStateForCalled, false);
 
-    reset();
-
-    store.unsafeSetState({ count: 0 });
-    assert.deepEquals(store.getState(), { count: 0 });
-
-    assert.equals(eventSetStateCalled, false);
-    assert.equals(eventSetStateForCalled, false);
-
-    assert.equals(eventUnsafeSetStateCalled, true);
-    assert.equals(eventUnsafeSetStateForCalled, true);
-
-    assert.end();
-});
+        assert.end();
+    }
+);

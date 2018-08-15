@@ -1,11 +1,12 @@
 import EventEmitter = require("events");
 import { State } from "./State";
+import { IState } from "./IState";
 
-export class Store<T = any> extends EventEmitter {
-    private _state: State;
+export class Store<S = IState, SS = IState> extends EventEmitter {
+    private _state: State<S>;
     private _name: string;
 
-    constructor(state: State, name: string) {
+    constructor(state: State<S>, name: string) {
         super();
 
         this._state = state;
@@ -16,27 +17,26 @@ export class Store<T = any> extends EventEmitter {
         return this._name;
     }
 
-    getState(): T {
+    getState(): SS {
         return this._state.getStateFor(this._name);
     }
 
-    setState(state: T): Store<T> {
+    setState(state: SS): Store<S, SS> {
         this.emit("set-state", state);
         this._state.setStateFor(this._name, state);
         return this;
     }
 
-    updateState(fn: (prev: T) => T) {
+    updateState(fn: (prev: SS) => SS): Store<S, SS> {
         return this.setState(fn(this.getState()));
     }
 
-    unsafeSetState(state: T): Store<T> {
-        this.emit("unsafe-set-state", state);
-        this._state.unsafeSetStateFor(this._name, state);
+    noEmitSetState(state: SS): Store<S, SS> {
+        this._state.noEmitSetStateFor(this._name, state);
         return this;
     }
 
-    unsafeUpdateState(fn: (prev: T) => T) {
-        return this.unsafeSetState(fn(this.getState()));
+    noEmitUpdateState(fn: (prev: SS) => SS): Store<S, SS> {
+        return this.noEmitSetState(fn(this.getState()));
     }
 }

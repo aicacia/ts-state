@@ -1,7 +1,8 @@
 import EventEmitter = require("events");
 import { Store } from "./Store";
+import { IState } from "./IState";
 
-export class State extends EventEmitter {
+export class State<S = IState> extends EventEmitter {
     private _state: { [key: string]: any };
     private _stores: { [key: string]: Store };
 
@@ -12,7 +13,7 @@ export class State extends EventEmitter {
         this._stores = {};
     }
 
-    createStore<T>(name: string, initialState?: T): Store<T> {
+    createStore<SS = IState>(name: string, initialState?: SS): Store<S, SS> {
         const store = new Store(this, name),
             state = { ...this._state },
             stores = { ...this._stores };
@@ -28,7 +29,7 @@ export class State extends EventEmitter {
         return store;
     }
 
-    removeStore(name: string): Store | null {
+    removeStore<SS = IState>(name: string): Store<S, SS> | null {
         const store = this.getStore(name);
 
         if (store !== null) {
@@ -47,55 +48,53 @@ export class State extends EventEmitter {
         return store;
     }
 
-    getStore<T = any>(name: string): Store<T> | null {
+    getStore<SS = IState>(name: string): Store<SS> | null {
         return this._stores[name] || null;
     }
 
-    getStateFor(name: string): any {
+    getStateFor<SS = IState>(name: string): SS {
         return this._state[name] || {};
     }
 
-    getState(): { [key: string]: any } {
-        return this._state;
+    getState(): S {
+        return <S>this._state;
     }
 
-    setStateFor(name: string, state: any): State {
-        return this._setStateFor("set-state-for", "set-state", name, state);
+    setStateFor<SS = IState>(name: string, state: SS): State<S> {
+        return this._setStateFor(name, state);
     }
 
-    setState(state: any): State {
-        return this._setState("set-state", state);
+    setState(state: S): State<S> {
+        return this._setState(state);
     }
 
-    unsafeSetStateFor(name: string, state: any): State {
-        return this._setStateFor(
-            "unsafe-set-state-for",
-            "unsafe-set-state",
-            name,
-            state
-        );
+    noEmitSetStateFor<SS = IState>(name: string, state: SS): State<S> {
+        return this._setStateFor(name, state, false);
     }
 
-    unsafeSetState(state: any): State {
-        return this._setState("unsafe-set-state", state);
+    noEmitSetState(state: S): State<S> {
+        return this._setState(state, false);
     }
 
-    private _setStateFor(
-        event: string,
-        rootEvent: string,
+    private _setStateFor<SS = IState>(
         name: string,
-        state: any
+        state: SS,
+        emit: boolean = true
     ): State {
         const nextState = { ...this._state };
 
-        this.emit(event, name, state);
+        if (emit) {
+            this.emit("set-state-for", name, state);
+        }
         nextState[name] = state;
 
-        return this._setState(rootEvent, nextState);
+        return this._setState(<S>nextState, emit);
     }
 
-    private _setState(event: string, state: any): State {
-        this.emit(event, state);
+    private _setState(state: S, emit: boolean = true): State<S> {
+        if (emit) {
+            this.emit("set-state", state);
+        }
         this._state = state;
         return this;
     }
