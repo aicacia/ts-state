@@ -61,11 +61,11 @@ export class State<S = IState> extends EventEmitter {
     }
 
     setStateFor<SS = IState>(name: string, state: SS): State<S> {
-        return this._setStateFor(name, state);
+        return this._setStateFor(name, state, true);
     }
 
     setState(state: S): State<S> {
-        return this._setState(state);
+        return this._setState(state, true);
     }
 
     noEmitSetStateFor<SS = IState>(name: string, state: SS): State<S> {
@@ -83,19 +83,24 @@ export class State<S = IState> extends EventEmitter {
     ): State {
         const nextState = { ...this._state };
 
+        nextState[name] = state;
+
+        this._setState(<S>nextState, emit);
+
         if (emit) {
             this.emit("set-state-for", name, state);
         }
-        nextState[name] = state;
 
-        return this._setState(<S>nextState, emit);
+        return this;
     }
 
     private _setState(state: S, emit: boolean = true): State<S> {
+        this._state = state;
+
         if (emit) {
             this.emit("set-state", state);
         }
-        this._state = state;
+
         return this;
     }
 }
