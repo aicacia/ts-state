@@ -76,13 +76,15 @@ tape("State/Store toJSON fromJSON", (assert: tape.Test) => {
         store = state.createStore("test", { count: 0 });
 
     assert.deepEquals(store.toJSON(), { count: 0 });
-    store.fromJSON({ count: 2 });
+    store.setStateJSON({ count: 2 });
     assert.deepEquals(store.toJSON(), { count: 2 });
 
-    state.fromJSON({
+    state.setStateJSON({
         test: { count: 1 }
     });
-    assert.deepEquals(store.toJSON(), { count: 1 });
+    assert.deepEquals(state.toJSON(), {
+        test: { count: 1 }
+    });
 
     assert.end();
 });

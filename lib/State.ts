@@ -89,16 +89,25 @@ export class State extends EventEmitter {
         return this.getState();
     }
 
-    fromJSON(json: any): State {
-        Object.keys(json).forEach(key => {
-            const store = this.getStore(key),
-                storeJSON = json[key];
+    fromJSON(json: any): IState {
+        return Object.keys(json).reduce((state, name) => {
+            const store = this.getStore(name),
+                storeJSON = json[name];
 
             if (store && storeJSON) {
-                store.fromJSON(storeJSON);
+                state[name] = store.fromJSON(storeJSON);
             }
-        });
-        return this;
+
+            return state;
+        }, this._state);
+    }
+
+    setStateJSON(json: any): State {
+        return this.setState(this.fromJSON(json));
+    }
+
+    noEmitSetStateJSON(json: any): State {
+        return this.noEmitSetState(this.fromJSON(json));
     }
 
     private _setStateFor<S = IState>(
