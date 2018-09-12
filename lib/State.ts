@@ -1,10 +1,19 @@
 import EventEmitter = require("events");
 import { Store } from "./Store";
-import { IState } from "./IState";
 
-export class State<S = IState> extends EventEmitter {
-    private _state: { [key: string]: any };
-    private _stores: { [key: string]: Store };
+export type IState =
+    | {
+          [key: string]: IState;
+      }
+    | any;
+
+export type IStores = {
+    [key: string]: any;
+};
+
+export class State extends EventEmitter {
+    private _state: IState;
+    private _stores: IStores;
 
     constructor() {
         super();
@@ -13,7 +22,7 @@ export class State<S = IState> extends EventEmitter {
         this._stores = {};
     }
 
-    createStore<SS = IState>(name: string, initialState?: SS): Store<S, SS> {
+    createStore<S = IState>(name: string, initialState?: S): Store<S> {
         const store = new Store(this, name),
             state = { ...this._state },
             stores = { ...this._stores };
@@ -29,7 +38,7 @@ export class State<S = IState> extends EventEmitter {
         return store;
     }
 
-    removeStore<SS = IState>(name: string): Store<S, SS> | null {
+    removeStore<S = IState>(name: string): Store<S> {
         const store = this.getStore(name);
 
         if (store !== null) {
@@ -48,44 +57,44 @@ export class State<S = IState> extends EventEmitter {
         return store;
     }
 
-    getStore<SS = IState>(name: string): Store<SS> | null {
-        return this._stores[name] || null;
+    getStore<S = IState>(name: string): Store<S> {
+        return this._stores[name];
     }
 
-    getStateFor<SS = IState>(name: string): SS {
-        return this._state[name] || {};
+    getStateFor<S = IState>(name: string): S {
+        return this._state[name] as S;
     }
 
-    getState(): S {
-        return <S>this._state;
+    getState(): IState {
+        return this._state;
     }
 
-    setStateFor<SS = IState>(name: string, state: SS): State<S> {
+    setStateFor<S = IState>(name: string, state: S): State {
         return this._setStateFor(name, state, true);
     }
 
-    setState(state: S): State<S> {
+    setState(state: IState): State {
         return this._setState(state, true);
     }
 
-    noEmitSetStateFor<SS = IState>(name: string, state: SS): State<S> {
+    noEmitSetStateFor<S = IState>(name: string, state: S): State {
         return this._setStateFor(name, state, false);
     }
 
-    noEmitSetState(state: S): State<S> {
+    noEmitSetState(state: IState): State {
         return this._setState(state, false);
     }
 
-    private _setStateFor<SS = IState>(
+    private _setStateFor<S = IState>(
         name: string,
-        state: SS,
+        state: S,
         emit: boolean = true
     ): State {
-        const nextState = { ...this._state };
+        const nextState: IState = { ...this._state };
 
-        nextState[name] = state;
+        nextState[name] = state as any;
 
-        this._setState(<S>nextState, emit);
+        this._setState(nextState, emit);
 
         if (emit) {
             this.emit("set-state-for", name, state);
@@ -94,7 +103,7 @@ export class State<S = IState> extends EventEmitter {
         return this;
     }
 
-    private _setState(state: S, emit: boolean = true): State<S> {
+    private _setState(state: IState, emit: boolean = true): State {
         this._state = state;
 
         if (emit) {
