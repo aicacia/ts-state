@@ -85,6 +85,22 @@ export class State extends EventEmitter {
         return this._setState(state, false);
     }
 
+    toJSON(): any {
+        return this.getState();
+    }
+
+    fromJSON(json: any): State {
+        Object.keys(json).forEach(key => {
+            const store = this.getStore(key),
+                storeJSON = json[key];
+
+            if (store && storeJSON) {
+                store.fromJSON(storeJSON);
+            }
+        });
+        return this;
+    }
+
     private _setStateFor<S = IState>(
         name: string,
         state: S,

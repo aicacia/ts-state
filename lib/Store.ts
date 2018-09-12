@@ -38,4 +38,13 @@ export class Store<S = IState> extends EventEmitter {
     noEmitUpdateState(fn: (prev: S) => S): Store<S> {
         return this.noEmitSetState(fn(this.getState()));
     }
+
+    toJSON(): any {
+        return this.getState();
+    }
+
+    fromJSON(json: any): Store<S> {
+        this.noEmitSetState(json);
+        return this;
+    }
 }
