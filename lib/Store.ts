@@ -2,27 +2,27 @@ import EventEmitter = require("events");
 import { State, IState } from "./State";
 
 export class Store<S = IState> extends EventEmitter {
-    private _state: State;
-    private _name: string;
+    state: State;
+    name: string;
 
     constructor(state: State, name: string) {
         super();
 
-        this._state = state;
-        this._name = name;
+        this.state = state;
+        this.name = name;
     }
 
     getName(): string {
-        return this._name;
+        return this.name;
     }
 
     getState(): S {
-        return this._state.getStateFor(this._name);
+        return this.state.getStateFor(this.name);
     }
 
     setState(state: S): Store<S> {
         this.emit("set-state", state);
-        this._state.setStateFor(this._name, state);
+        this.state.setStateFor(this.name, state);
         return this;
     }
 
@@ -31,7 +31,7 @@ export class Store<S = IState> extends EventEmitter {
     }
 
     noEmitSetState(state: S): Store<S> {
-        this._state.noEmitSetStateFor(this._name, state);
+        this.state.noEmitSetStateFor(this.name, state);
         return this;
     }
 

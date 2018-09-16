@@ -12,26 +12,26 @@ export type IStores = {
 };
 
 export class State extends EventEmitter {
-    private _state: IState;
-    private _stores: IStores;
+    state: IState;
+    stores: IStores;
 
     constructor() {
         super();
 
-        this._state = {};
-        this._stores = {};
+        this.state = {};
+        this.stores = {};
     }
 
     createStore<S = IState>(name: string, initialState?: S): Store<S> {
         const store = new Store(this, name),
-            state = { ...this._state },
-            stores = { ...this._stores };
+            state = { ...this.state },
+            stores = { ...this.stores };
 
         state[name] = initialState || {};
         stores[name] = store;
 
-        this._state = state;
-        this._stores = stores;
+        this.state = state;
+        this.stores = stores;
 
         this.emit("create-store", store);
 
@@ -42,14 +42,14 @@ export class State extends EventEmitter {
         const store = this.getStore(name);
 
         if (store !== null) {
-            const state = { ...this._state },
-                stores = { ...this._stores };
+            const state = { ...this.state },
+                stores = { ...this.stores };
 
             delete state[name];
             delete stores[name];
 
-            this._state = state;
-            this._stores = stores;
+            this.state = state;
+            this.stores = stores;
 
             this.emit("delete-store", store);
         }
@@ -58,31 +58,31 @@ export class State extends EventEmitter {
     }
 
     getStore<S = IState>(name: string): Store<S> {
-        return this._stores[name];
+        return this.stores[name];
     }
 
     getStateFor<S = IState>(name: string): S {
-        return this._state[name] as S;
+        return this.state[name] as S;
     }
 
     getState(): IState {
-        return this._state;
+        return this.state;
     }
 
     setStateFor<S = IState>(name: string, state: S): State {
-        return this._setStateFor(name, state, true);
+        return this.internalSetStateFor(name, state, true);
     }
 
     setState(state: IState): State {
-        return this._setState(state, true);
+        return this.internalSetState(state, true);
     }
 
     noEmitSetStateFor<S = IState>(name: string, state: S): State {
-        return this._setStateFor(name, state, false);
+        return this.internalSetStateFor(name, state, false);
     }
 
     noEmitSetState(state: IState): State {
-        return this._setState(state, false);
+        return this.internalSetState(state, false);
     }
 
     toJSON(): any {
@@ -99,7 +99,7 @@ export class State extends EventEmitter {
             }
 
             return state;
-        }, this._state);
+        }, this.state);
     }
 
     setStateJSON(json: any): State {
@@ -110,16 +110,16 @@ export class State extends EventEmitter {
         return this.noEmitSetState(this.fromJSON(json));
     }
 
-    private _setStateFor<S = IState>(
+    internalSetStateFor<S = IState>(
         name: string,
         state: S,
         emit: boolean = true
     ): State {
-        const nextState: IState = { ...this._state };
+        const nextState: IState = { ...this.state };
 
         nextState[name] = state as any;
 
-        this._setState(nextState, emit);
+        this.internalSetState(nextState, emit);
 
         if (emit) {
             this.emit("set-state-for", name, state);
@@ -128,8 +128,8 @@ export class State extends EventEmitter {
         return this;
     }
 
-    private _setState(state: IState, emit: boolean = true): State {
-        this._state = state;
+    internalSetState(state: IState, emit: boolean = true): State {
+        this.state = state;
 
         if (emit) {
             this.emit("set-state", state);
