@@ -41,7 +41,7 @@ export class State extends EventEmitter {
     removeStore<S = IState>(name: string): Store<S> {
         const store = this.getStore(name);
 
-        if (store !== null) {
+        if (store !== null && store !== undefined) {
             const state = { ...this.state },
                 stores = { ...this.stores };
 
