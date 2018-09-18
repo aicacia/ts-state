@@ -71,3 +71,7 @@ This is what our state looks like now.
 That's it! Notice there are no reducers, filters, dispatchers, constants, none of that. If anyone is familiar with clojurescript you can think of this state library as doing an atomic `swap!` on a subportion of the global application tree.
 
 The bottom line is you don't actually have a copy of the state you have a series of functions to manipulate a little piece of the global state.
+
+## Using in the Real world
+
+Right now we only use this with React it could be used with most view libraries, the connect library is here [state-react](https://gitlab.com/stembord/ts-state-react)
