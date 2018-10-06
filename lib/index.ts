@@ -60,7 +60,7 @@ export class Store<S, T> extends EventEmitter {
 }
 
 export class State<S> extends EventEmitter {
-    state: S;
+    current: S;
     stores: IStores<S>;
 
     constructor(state: S) {
@@ -72,7 +72,7 @@ export class State<S> extends EventEmitter {
             (stores as any)[key] = new Store(this, key);
         }
 
-        this.state = state;
+        this.current = state;
         this.stores = stores;
     }
 
@@ -83,11 +83,11 @@ export class State<S> extends EventEmitter {
     }
 
     getStateFor<K extends keyof S>(name: K): S[K] {
-        return this.state[name];
+        return this.current[name];
     }
 
     getState(): S {
-        return this.state;
+        return this.current;
     }
 
     setStateFor<K extends Extract<keyof S, string>>(
@@ -126,7 +126,7 @@ export class State<S> extends EventEmitter {
             }
 
             return state;
-        }, this.state);
+        }, this.current);
     }
 
     setStateJSON(json: any): State<S> {
@@ -142,7 +142,7 @@ export class State<S> extends EventEmitter {
         state: S[K],
         emit: boolean = true
     ): State<S> {
-        const nextState: S = { ...(this.state as any) };
+        const nextState: S = { ...(this.current as any) };
 
         nextState[name] = state as any;
 
@@ -156,7 +156,7 @@ export class State<S> extends EventEmitter {
     }
 
     internalSetState(state: S, emit: boolean = true): State<S> {
-        this.state = state;
+        this.current = state;
 
         if (emit) {
             this.emit("set-state", state);
