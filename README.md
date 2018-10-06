@@ -15,24 +15,26 @@ stores are views into your state, they can trigger updates by setState or update
 ```typescript
 import { State } from "@stembord/state";
 
-const state = new State();
+const state = new State({
+    todos: {
+        list: []
+    }
+});
 
-let ID = 0;
+let TODO_ID = 0;
 
-interface ITodos {
+export interface ITodos {
     list: [];
 }
 
-const todos = state.createStore("todos", {
-    list: []
-});
+export const store = state.getStore("todos");
 
 export const selectTodos = ({ list }: ITodos) => list;
 
 export const create = (text: string) => {
-    const id = ID++;
+    const id = TODO_ID++;
 
-    todos.updateState(({ list }: ITodos) => ({
+    store.updateState(({ list }: ITodos) => ({
         list: [
             ...list,
             {
@@ -44,7 +46,7 @@ export const create = (text: string) => {
 };
 
 export const remove = (id: number) => {
-    todos.updateState(({ list }: ITodos) => {
+    store.updateState(({ list }: ITodos) => {
         const index = list.findIndex(todo => todo.id === id);
 
         if (index !== -1) {
