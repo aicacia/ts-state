@@ -23,14 +23,14 @@ export class Store<S, T> extends EventEmitter {
         return this.state.getStateFor(this.name) as any;
     }
 
-    setState(state: T): Store<S, T> {
+    setState(state: T, meta?: any): Store<S, T> {
         this.emit("set-state", state);
-        this.state.setStateFor(this.name, state as any);
+        this.state.setStateFor(this.name, state as any, meta);
         return this;
     }
 
-    updateState(fn: (prev: T) => T): Store<S, T> {
-        return this.setState(fn(this.getState()));
+    updateState(fn: (prev: T) => T, meta?: any): Store<S, T> {
+        return this.setState(fn(this.getState()), meta);
     }
 
     noEmitSetState(state: T): Store<S, T> {
@@ -92,20 +92,22 @@ export class State<S> extends EventEmitter {
 
     setStateFor<K extends Extract<keyof S, string>>(
         name: K,
-        state: S[K]
+        state: S[K],
+        meta?: any
     ): State<S> {
-        return this.internalSetStateFor(name, state, true);
+        return this.internalSetStateFor(name, state, meta, true);
     }
 
-    setState(state: S): State<S> {
-        return this.internalSetState(state, true);
+    setState(state: S, meta?: any): State<S> {
+        return this.internalSetState(state, meta, true);
     }
 
     noEmitSetStateFor<K extends Extract<keyof S, string>>(
         name: K,
-        state: S[K]
+        state: S[K],
+        meta?: any
     ): State<S> {
-        return this.internalSetStateFor(name, state, false);
+        return this.internalSetStateFor(name, state, meta, false);
     }
 
     noEmitSetState(state: S): State<S> {
@@ -140,26 +142,27 @@ export class State<S> extends EventEmitter {
     internalSetStateFor<K extends Extract<keyof S, string>>(
         name: K,
         state: S[K],
+        meta?: any,
         emit: boolean = true
     ): State<S> {
         const nextState: S = { ...(this.current as any) };
 
         nextState[name] = state as any;
 
-        this.internalSetState(nextState, emit);
+        this.internalSetState(nextState, meta, emit);
 
         if (emit) {
-            this.emit("set-state-for", name, state);
+            this.emit("set-state-for", name, state, meta);
         }
 
         return this;
     }
 
-    internalSetState(state: S, emit: boolean = true): State<S> {
+    internalSetState(state: S, meta?: any, emit: boolean = true): State<S> {
         this.current = state;
 
         if (emit) {
-            this.emit("set-state", state);
+            this.emit("set-state", state, meta);
         }
 
         return this;

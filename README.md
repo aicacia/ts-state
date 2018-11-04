@@ -15,11 +15,15 @@ stores are views into your state, they can trigger updates by setState or update
 ```typescript
 import { State } from "@stembord/state";
 
-const state = new State({
-    todos: {
-        list: []
-    }
-});
+const TODOS_INITIAL_STATE = {
+    list: []
+};
+
+const GLOBAL_INITIAL_STATE = {
+    todos: TODOS_INITIAL_STATE
+};
+
+const state = new State(GLOBAL_INITIAL_STATE);
 
 let TODO_ID = 0;
 

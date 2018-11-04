@@ -6,19 +6,23 @@ tape("State createStore, setState, updateState", (assert: tape.Test) => {
         counter = state.getStore("counter");
 
     let eventSetStateCalled = false,
-        eventSetStateForCalled = false;
+        eventSetStateForCalled = false,
+        metas: string[] = [];
 
     state.on("set-state", () => {
         eventSetStateCalled = true;
     });
 
-    state.on("set-state-for", name => {
+    state.on("set-state-for", (name, state, meta) => {
         eventSetStateForCalled = true;
+        metas.push(meta);
         assert.equals(name, "counter");
     });
 
-    counter.setState({ count: 1 });
-    counter.updateState(({ count }) => ({ count: count + 1 }));
+    counter.setState({ count: 1 }, "reset");
+    counter.updateState(({ count }) => ({ count: count + 1 }), "incement");
+
+    assert.deepEquals(metas, ["reset", "incement"]);
 
     assert.deepEquals(state.getStateFor("counter"), { count: 2 });
     assert.deepEquals(state.getState(), { counter: { count: 2 } });
@@ -53,7 +57,7 @@ tape(
             assert.equals(name, "counter");
         });
 
-        counter.setState({ count: 1 });
+        counter.setState({ count: 1 }, "reset");
         assert.deepEquals(counter.getState(), { count: 1 });
 
         assert.equals(eventSetStateCalled, true);
