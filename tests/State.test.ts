@@ -6,8 +6,9 @@ tape("State createStore, setState, updateState", (assert: tape.Test) => {
     counter = state.getStore("counter");
 
   let eventSetStateCalled = false,
-    eventSetStateForCalled = false,
-    metas: string[] = [];
+    eventSetStateForCalled = false;
+
+  const metas: string[] = [];
 
   state.on("set-state", () => {
     eventSetStateCalled = true;

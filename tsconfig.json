@@ -2,11 +2,11 @@
   "compilerOptions": {
     "target": "es3",
     "module": "commonjs",
+    "moduleResolution": "node",
     "declaration": true,
     "outDir": "./src",
     "strict": true,
     "lib": ["esnext"]
   },
-  "include": ["lib/**/*.ts"],
-  "exclude": ["node_modules", "tests/**/*.test.ts"]
+  "include": ["lib"]
 }

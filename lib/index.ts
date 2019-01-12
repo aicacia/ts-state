@@ -66,10 +66,12 @@ export class State<S> extends EventEmitter {
   constructor(state: S) {
     super();
 
-    const stores = {} as IStores<S>;
+    const stores: IStores<S> = {} as any;
 
-    for (let key in state) {
-      (stores as any)[key] = new Store(this, key);
+    for (const key in state) {
+      if (state.hasOwnProperty(key)) {
+        (stores as any)[key] = new Store(this, key);
+      }
     }
 
     this.current = state;
