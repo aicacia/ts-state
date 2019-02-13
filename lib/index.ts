@@ -1,10 +1,6 @@
 import { EventEmitter } from "events";
 import { Record } from "immutable";
 
-export type IStores<S> = {
-  [K in Extract<keyof S, string>]: Store<State<S>, S[K]>
-};
-
 export class Store<S, T> extends EventEmitter {
   name: Extract<keyof S, string>;
   state: State<S>;
@@ -61,22 +57,22 @@ export class Store<S, T> extends EventEmitter {
 }
 
 export class State<S> extends EventEmitter {
-  RecordFactory: Record.Factory<S>;
+  Record: Record.Factory<S>;
   current: Record<S>;
-  stores: IStores<S>;
+  stores: { [K in Extract<keyof S, string>]: Store<State<S>, S[K]> };
 
   constructor(initialState: S) {
     super();
 
-    this.RecordFactory = Record(initialState);
-    this.current = this.RecordFactory();
+    this.Record = Record(initialState);
+    this.current = this.Record();
 
     const state = this.current.toJS(),
-      stores: IStores<S> = {} as any;
+      stores = {} as any;
 
     for (const key in state) {
       if (state.hasOwnProperty(key)) {
-        (stores as any)[key] = new Store(this, key);
+        stores[key] = new Store(this, key);
       }
     }
 
@@ -137,7 +133,7 @@ export class State<S> extends EventEmitter {
       }
 
       return state;
-    }, this.RecordFactory());
+    }, this.Record());
   }
 
   setStateJSON(json: any): State<S> {
