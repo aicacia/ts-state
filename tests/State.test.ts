@@ -1,8 +1,22 @@
 import * as tape from "tape";
 import { State } from "../lib";
 
+interface ICounter {
+  count: number;
+}
+
+interface ITestState {
+  counter: ICounter;
+}
+
+const INITIAL_STATE: ITestState = {
+  counter: {
+    count: 0
+  }
+};
+
 tape("State createStore, setState, updateState", (assert: tape.Test) => {
-  const state = new State({ counter: { count: 0 } }),
+  const state = new State(INITIAL_STATE),
     counter = state.getStore("counter");
 
   let eventSetStateCalled = false,
@@ -26,7 +40,7 @@ tape("State createStore, setState, updateState", (assert: tape.Test) => {
   assert.deepEquals(metas, ["reset", "incement"]);
 
   assert.deepEquals(state.getStateFor("counter"), { count: 2 });
-  assert.deepEquals(state.getState(), { counter: { count: 2 } });
+  assert.deepEquals(state.getState().toJSON(), { counter: { count: 2 } });
   assert.deepEquals(counter.getState(), { count: 2 });
 
   assert.equals(eventSetStateCalled, true);
@@ -38,7 +52,7 @@ tape("State createStore, setState, updateState", (assert: tape.Test) => {
 tape(
   "State no emit createStore, setState, updateState",
   (assert: tape.Test) => {
-    const state = new State({ counter: { count: 0 } }),
+    const state = new State(INITIAL_STATE),
       counter = state.getStore("counter");
 
     let eventSetStateCalled = false,
@@ -77,7 +91,7 @@ tape(
 );
 
 tape("State/Store toJSON fromJSON", (assert: tape.Test) => {
-  const state = new State({ counter: { count: 0 } }),
+  const state = new State(INITIAL_STATE),
     counter = state.getStore("counter");
 
   assert.deepEquals(counter.toJSON(), { count: 0 });

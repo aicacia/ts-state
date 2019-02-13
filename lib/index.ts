@@ -1,4 +1,5 @@
 import { EventEmitter } from "events";
+import { Record } from "immutable";
 
 export type IStores<S> = {
   [K in Extract<keyof S, string>]: Store<State<S>, S[K]>
@@ -60,13 +61,18 @@ export class Store<S, T> extends EventEmitter {
 }
 
 export class State<S> extends EventEmitter {
-  current: S;
+  RecordFactory: Record.Factory<S>;
+  current: Record<S>;
   stores: IStores<S>;
 
-  constructor(state: S) {
+  constructor(initialState: S) {
     super();
 
-    const stores: IStores<S> = {} as any;
+    this.RecordFactory = Record(initialState);
+    this.current = this.RecordFactory();
+
+    const state = this.current.toJS(),
+      stores: IStores<S> = {} as any;
 
     for (const key in state) {
       if (state.hasOwnProperty(key)) {
@@ -74,7 +80,6 @@ export class State<S> extends EventEmitter {
       }
     }
 
-    this.current = state;
     this.stores = stores;
   }
 
@@ -83,10 +88,10 @@ export class State<S> extends EventEmitter {
   }
 
   getStateFor<K extends keyof S>(name: K): S[K] {
-    return this.current[name];
+    return this.current.get(name);
   }
 
-  getState(): S {
+  getState(): Record<S> {
     return this.current;
   }
 
@@ -98,7 +103,7 @@ export class State<S> extends EventEmitter {
     return this.internalSetStateFor(name, state, meta, true);
   }
 
-  setState(state: S, meta?: any): State<S> {
+  setState(state: Record<S>, meta?: any): State<S> {
     return this.internalSetState(state, meta, true);
   }
 
@@ -110,25 +115,29 @@ export class State<S> extends EventEmitter {
     return this.internalSetStateFor(name, state, meta, false);
   }
 
-  noEmitSetState(state: S): State<S> {
+  noEmitSetState(state: Record<S>): State<S> {
     return this.internalSetState(state, false);
   }
 
-  toJSON(): S {
-    return this.getState();
+  toJS(): S {
+    return this.getState().toJS();
   }
 
-  fromJSON(json: any): S {
+  toJSON(): any {
+    return this.getState().toJSON();
+  }
+
+  fromJSON(json: any): Record<S> {
     return Object.keys(json).reduce((state, name) => {
       const store = this.getStore(name as any),
         storeJSON = json[name];
 
       if (store && storeJSON) {
-        (state as any)[name] = store.fromJSON(storeJSON);
+        state = state.set(name, store.fromJSON(storeJSON));
       }
 
       return state;
-    }, this.current);
+    }, this.RecordFactory());
   }
 
   setStateJSON(json: any): State<S> {
@@ -145,9 +154,7 @@ export class State<S> extends EventEmitter {
     meta?: any,
     emit: boolean = true
   ): State<S> {
-    const nextState: S = { ...(this.current as any) };
-
-    nextState[name] = state as any;
+    const nextState = this.current.set(name, state);
 
     this.internalSetState(nextState, meta, emit);
 
@@ -158,7 +165,11 @@ export class State<S> extends EventEmitter {
     return this;
   }
 
-  internalSetState(state: S, meta?: any, emit: boolean = true): State<S> {
+  internalSetState(
+    state: Record<S>,
+    meta?: any,
+    emit: boolean = true
+  ): State<S> {
     this.current = state;
 
     if (emit) {
