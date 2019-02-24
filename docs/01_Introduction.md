@@ -19,14 +19,14 @@ These are the same as Redux! However, we don't absolutely force you to have read
 
 **The state of your whole application is stored within an object tree**
 
-```javascript
-const { State } = require("@stembord/state");
+```ts
+const { State } = require("@aicacia/state");
 const applicationState = new State();
 ```
 
 In order to start adding things to the application state you need to create **stores**. Conceptually, these provide snapshots into the application state.
 
-```javascript
+```ts
 // filename: posts_store.js
 const postsStore = applicationState.createStore("posts", { posts: [] });
 ```
@@ -41,7 +41,7 @@ The following image illustrates how our state looks after the above call.
 
 You can make this call from anywhere in your application, although when building a ReST API you would typically do it after receiving the server response.
 
-```javascript
+```ts
 // filename: posts_store.js
 const axios = require("axios");
 
@@ -74,4 +74,4 @@ The bottom line is you don't actually have a copy of the state you have a series
 
 ## Using in the Real world
 
-Right now we only use this with React it could be used with most view libraries, the connect library is here [state-react](https://gitlab.com/stembord/ts-state-react)
+Right now we only use this with React it could be used with most view libraries, the connect library is here [state-react](https://gitlab.com/aicacia/ts-state-react)
