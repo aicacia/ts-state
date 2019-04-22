@@ -13,7 +13,7 @@ stores are views into your state, they can trigger updates by setState or update
 ### Example Store
 
 ```typescript
-import { State } from "@aicacia/state";
+import { State } from "@stembord/state";
 
 const TODOS_INITIAL_STATE = {
     list: []

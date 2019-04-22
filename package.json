@@ -1,10 +1,10 @@
 {
-  "name": "@aicacia/state",
-  "version": "0.1.0",
+  "name": "@stembord/state",
+  "version": "0.2.5",
   "description": "state management for applications",
   "repository": {
     "type": "git",
-    "url": "https://gitlab.com/aicacia/ts-state.git"
+    "url": "https://gitlab.com/stembord/libs/ts-state.git"
   },
   "main": "./src/index.js",
   "types": "./src/index.d.ts",
@@ -37,7 +37,7 @@
     "ts-node": "^8.0.2",
     "tslint": "^5.13.0",
     "tslint-config-prettier": "^1.18.0",
-    "typescript": "^3.3.3333"
+    "typescript": "^3.4.4"
   },
   "dependencies": {
     "immutable": ">= 4.0.0-rc.12"

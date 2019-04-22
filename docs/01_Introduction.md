@@ -20,7 +20,7 @@ These are the same as Redux! However, we don't absolutely force you to have read
 **The state of your whole application is stored within an object tree**
 
 ```ts
-const { State } = require("@aicacia/state");
+const { State } = require("@stembord/state");
 const applicationState = new State();
 ```
 
@@ -74,4 +74,4 @@ The bottom line is you don't actually have a copy of the state you have a series
 
 ## Using in the Real world
 
-Right now we only use this with React it could be used with most view libraries, the connect library is here [state-react](https://gitlab.com/aicacia/ts-state-react)
+Right now we only use this with React it could be used with most view libraries, the connect library is here [state-react](https://gitlab.com/stembord/ts-state-react)
