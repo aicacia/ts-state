@@ -1,3 +1,4 @@
+import { IJSON, IJSONObject } from "@stembord/json";
 import { EventEmitter } from "events";
 import { Record } from "immutable";
 
@@ -39,48 +40,52 @@ export class Store<S, T> extends EventEmitter {
     return this.noEmitSetState(fn(this.getState()));
   }
 
-  toJSON(): any {
-    return this.getState();
+  toJSON(): IJSON {
+    return this.getState() as any;
   }
 
-  fromJSON(json: any): T {
-    return json;
+  fromJSON(json: IJSON): T {
+    return json as any;
   }
 
-  setStateJSON(json: any): Store<S, T> {
+  setStateJSON(json: IJSON): Store<S, T> {
     return this.setState(this.fromJSON(json));
   }
 
-  noEmitSetStateJSON(json: any): Store<S, T> {
+  noEmitSetStateJSON(json: IJSON): Store<S, T> {
     return this.noEmitSetState(this.fromJSON(json));
   }
 }
 
+type IStores<S> = { [K in Extract<keyof S, string>]: Store<State<S>, S[K]> };
+
 export class State<S> extends EventEmitter {
-  Record: Record.Factory<S>;
+  State: Record.Factory<S>;
+  Stores: Record.Factory<IStores<S>>;
   current: Record<S>;
-  stores: { [K in Extract<keyof S, string>]: Store<State<S>, S[K]> };
+  stores: Record<IStores<S>>;
 
   constructor(initialState: S) {
     super();
 
-    this.Record = Record(initialState);
-    this.current = this.Record();
+    this.State = Record(initialState);
+    this.current = this.State();
 
     const state = this.current.toJS(),
-      stores = {} as any;
+      initialStores: IStores<S> = {} as any;
 
     for (const key in state) {
       if (state.hasOwnProperty(key)) {
-        stores[key] = new Store(this, key);
+        initialStores[key] = new Store(this, key) as any;
       }
     }
 
-    this.stores = stores;
+    this.Stores = Record(initialStores);
+    this.stores = this.Stores();
   }
 
   getStore<K extends Extract<keyof S, string>>(name: K): Store<State<S>, S[K]> {
-    return this.stores[name];
+    return this.stores.get(name);
   }
 
   getStateFor<K extends keyof S>(name: K): S[K] {
@@ -119,28 +124,31 @@ export class State<S> extends EventEmitter {
     return this.getState().toJS();
   }
 
-  toJSON(): any {
-    return this.getState().toJSON();
+  toJSON(): IJSONObject {
+    return this.getState().toJSON() as any;
   }
 
-  fromJSON(json: any): Record<S> {
+  fromJSON(json: IJSONObject): Record<S> {
     return Object.keys(json).reduce((state, name) => {
-      const store = this.getStore(name as any),
+      const store = this.getStore(name as Extract<keyof S, string>),
         storeJSON = json[name];
 
       if (store && storeJSON) {
-        state = state.set(name, store.fromJSON(storeJSON));
+        state = state.set(
+          name as Extract<keyof S, string>,
+          store.fromJSON(storeJSON)
+        );
       }
 
       return state;
-    }, this.Record());
+    }, this.State());
   }
 
-  setStateJSON(json: any): State<S> {
+  setStateJSON(json: IJSONObject): State<S> {
     return this.setState(this.fromJSON(json));
   }
 
-  noEmitSetStateJSON(json: any): State<S> {
+  noEmitSetStateJSON(json: IJSONObject): State<S> {
     return this.noEmitSetState(this.fromJSON(json));
   }
 

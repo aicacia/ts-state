@@ -1,6 +1,6 @@
 {
   "name": "@stembord/state",
-  "version": "0.2.5",
+  "version": "0.2.6",
   "description": "state management for applications",
   "repository": {
     "type": "git",
@@ -30,16 +30,17 @@
   "readmeFilename": "README.md",
   "devDependencies": {
     "@types/tape": "^4.2.33",
-    "prettier": "^1.16.4",
+    "prettier": "^1.18.2",
     "prettier-tslint": "^0.4.2",
     "tap-spec": "^5.0.0",
-    "tape": "^4.10.1",
-    "ts-node": "^8.0.2",
-    "tslint": "^5.13.0",
+    "tape": "^4.10.2",
+    "ts-node": "^8.2.0",
+    "tslint": "^5.17.0",
     "tslint-config-prettier": "^1.18.0",
-    "typescript": "^3.4.4"
+    "typescript": "^3.5.1"
   },
   "dependencies": {
+    "@stembord/json": "^0.1.0",
     "immutable": ">= 4.0.0-rc.12"
   }
 }
