@@ -1,6 +1,6 @@
 {
   "name": "@stembord/state",
-  "version": "0.2.6",
+  "version": "0.2.7",
   "description": "state management for applications",
   "repository": {
     "type": "git",
@@ -12,13 +12,13 @@
   "scripts": {
     "build": "tsc",
     "prepublishOnly": "npm run clean && npm run build",
-    "test": "ts-node node_modules/tape/bin/tape ./tests/**/*.test.ts | tap-spec",
-    "clean": "npm run clean_build",
-    "clean_build": "rm -rf ./src",
-    "format.ts": "prettier-tslint fix '**/*.{ts,tsx}'",
-    "format.js": "prettier --write '**/*.{js,jsx,json}' --ignore-path .gitignore",
-    "format": "npm run format.ts && npm run format.js",
-    "lint": "tslint -c tslint.json 'lib/**/*.{ts,tsx}'"
+    "test": "ts-node node_modules/.bin/tape lib/**/*.test.{ts,tsx} | tap-spec",
+    "coverage": "nyc --reporter=lcov --check-coverage --lines=75 --require ts-node/register tape lib/**/*.test.{ts,tsx} | tap-spec; nyc report ---reporter=text",
+    "clean": "rm -rf ./src",
+    "formatTS": "prettier-tslint fix '**/*.{ts,tsx}'",
+    "formatJS": "prettier --write '**/*.{js,jsx,json}' --ignore-path .gitignore",
+    "format": "npm run formatTS && npm run formatJS",
+    "lint": "tslint -c tslint.json 'lib/**/*.{ts,tsx}' -e 'lib/**/*.test.*'"
   },
   "keywords": [
     "state",
@@ -31,16 +31,30 @@
   "devDependencies": {
     "@types/tape": "^4.2.33",
     "prettier": "^1.18.2",
+    "nyc": "^14.1.1",
     "prettier-tslint": "^0.4.2",
     "tap-spec": "^5.0.0",
-    "tape": "^4.10.2",
-    "ts-node": "^8.2.0",
-    "tslint": "^5.17.0",
+    "tap-nyc": "^1.0.3",
+    "tape": "^4.11.0",
+    "ts-node": "^8.3.0",
+    "tslint": "^5.18.0",
     "tslint-config-prettier": "^1.18.0",
-    "typescript": "^3.5.1"
+    "typescript": "^3.5.3"
   },
   "dependencies": {
     "@stembord/json": "^0.1.0",
-    "immutable": ">= 4.0.0-rc.12"
+    "immutable": "^4.0.0-rc.12"
+  },
+  "nyc": {
+    "include": [
+      "lib/**/*"
+    ],
+    "exclude": [
+      "**/*.test.*"
+    ],
+    "extension": [
+      ".ts",
+      ".tsx"
+    ]
   }
 }

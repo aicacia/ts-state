@@ -1,5 +1,5 @@
 import * as tape from "tape";
-import { State } from "../lib";
+import { State } from "./State";
 
 interface ICounter {
   count: number;
