@@ -1,32 +1,40 @@
-import { IJSONObject } from "@stembord/json";
+import { IJSONObject, isJSON } from "@stembord/json";
 import { EventEmitter } from "events";
 import { Record } from "immutable";
 
-type IStores<S> = { [K in Extract<keyof S, string>]: Store<State<S>, S[K]> };
+type IStores<S extends {}> = {
+  [K in Extract<keyof S, string>]: Store<State<S>, S[K]>;
+};
 
-export class State<S> extends EventEmitter {
-  State: Record.Factory<S>;
-  Stores: Record.Factory<IStores<S>>;
-  current: Record<S>;
-  stores: Record<IStores<S>>;
+export class State<S extends {}> extends EventEmitter {
+  private State: Record.Factory<S>;
+  private Stores: Record.Factory<IStores<S>>;
+  private current: Record<S>;
+  private stores: Record<IStores<S>>;
 
   constructor(initialState: S) {
     super();
 
     this.State = Record(initialState);
     this.current = this.State();
-
-    const state = this.current.toJS(),
-      initialStores: IStores<S> = {} as any;
-
-    for (const key in state) {
-      if (state.hasOwnProperty(key)) {
-        initialStores[key] = new Store(this, key) as any;
-      }
-    }
-
-    this.Stores = Record(initialStores);
+    this.Stores = Record(
+      this.current.toSeq().reduce((initialStores: IStores<S>, _, key) => {
+        const name: Extract<keyof S, string> = key as any;
+        initialStores[name] = new Store(this, name) as any;
+        return initialStores;
+      }, {} as any)
+    );
     this.stores = this.Stores();
+  }
+
+  resetState() {
+    this.current = this.State();
+    return this;
+  }
+  resetStateFor<K extends Extract<keyof S, string>>(name: K) {
+    const initialState = this.State();
+    this.current.set(name, initialState.get(name));
+    return this;
   }
 
   getStore<K extends Extract<keyof S, string>>(name: K): Store<State<S>, S[K]> {
@@ -41,22 +49,22 @@ export class State<S> extends EventEmitter {
     return this.current;
   }
 
-  setStateFor<K extends Extract<keyof S, string>>(
+  setStateFor<K extends Extract<keyof S, string>, M = any>(
     name: K,
     state: S[K],
-    meta?: any
+    meta?: M
   ): State<S> {
     return this.internalSetStateFor(name, state, meta, true);
   }
 
-  setState(state: Record<S>, meta?: any): State<S> {
+  setState<M = any>(state: Record<S>, meta?: M): State<S> {
     return this.internalSetState(state, meta, true);
   }
 
-  noEmitSetStateFor<K extends Extract<keyof S, string>>(
+  noEmitSetStateFor<K extends Extract<keyof S, string>, M = any>(
     name: K,
     state: S[K],
-    meta?: any
+    meta?: M
   ): State<S> {
     return this.internalSetStateFor(name, state, meta, false);
   }
@@ -65,20 +73,26 @@ export class State<S> extends EventEmitter {
     return this.internalSetState(state, false);
   }
 
-  toJS(): S {
-    return this.getState().toJS();
+  toJS(): { [K in Extract<keyof S, string>]: S[K] } {
+    return this.stores.toSeq().reduce((js, store, name) => {
+      js[name] = store.toJS();
+      return js;
+    }, {} as any);
   }
 
   toJSON(): IJSONObject {
-    return this.getState().toJSON() as any;
+    return this.stores.toSeq().reduce((json: IJSONObject, store, name) => {
+      json[name] = store.toJSON();
+      return json;
+    }, {} as any);
   }
 
-  fromJSON(json: IJSONObject): Record<S> {
+  fromJSON(json: IJSONObject) {
     return Object.keys(json).reduce((state, name) => {
       const store = this.getStore(name as Extract<keyof S, string>),
         storeJSON = json[name];
 
-      if (store && storeJSON) {
+      if (store && isJSON(storeJSON)) {
         state = state.set(
           name as Extract<keyof S, string>,
           store.fromJSON(storeJSON)
@@ -86,21 +100,21 @@ export class State<S> extends EventEmitter {
       }
 
       return state;
-    }, this.State());
+    }, this.current);
   }
 
-  setStateJSON(json: IJSONObject): State<S> {
+  setStateJSON(json: IJSONObject) {
     return this.setState(this.fromJSON(json));
   }
 
-  noEmitSetStateJSON(json: IJSONObject): State<S> {
+  noEmitSetStateJSON(json: IJSONObject) {
     return this.noEmitSetState(this.fromJSON(json));
   }
 
-  internalSetStateFor<K extends Extract<keyof S, string>>(
+  internalSetStateFor<K extends Extract<keyof S, string>, M = any>(
     name: K,
     state: S[K],
-    meta?: any,
+    meta?: M,
     emit: boolean = true
   ): State<S> {
     const nextState = this.current.set(name, state);
@@ -114,9 +128,9 @@ export class State<S> extends EventEmitter {
     return this;
   }
 
-  internalSetState(
+  internalSetState<M = any>(
     state: Record<S>,
-    meta?: any,
+    meta?: M,
     emit: boolean = true
   ): State<S> {
     this.current = state;

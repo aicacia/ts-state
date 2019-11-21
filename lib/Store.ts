@@ -1,7 +1,8 @@
 import { IJSON } from "@stembord/json";
 import { EventEmitter } from "events";
+import { isFunction } from "util";
 
-export class Store<S, T> extends EventEmitter {
+export class Store<S extends {}, T> extends EventEmitter {
   name: Extract<keyof S, string>;
   state: State<S>;
 
@@ -12,6 +13,11 @@ export class Store<S, T> extends EventEmitter {
     this.state = state;
   }
 
+  reset() {
+    this.state.resetStateFor(this.name);
+    return this;
+  }
+
   getName(): Extract<keyof S, string> {
     return this.name;
   }
@@ -20,7 +26,7 @@ export class Store<S, T> extends EventEmitter {
     return this.state.getStateFor(this.name) as any;
   }
 
-  setState(state: T, meta?: any): Store<S, T> {
+  setState<M = any>(state: T, meta?: M): Store<S, T> {
     this.emit("set-state", state);
     this.state.setStateFor(this.name, state as any, meta);
     return this;
@@ -39,8 +45,18 @@ export class Store<S, T> extends EventEmitter {
     return this.noEmitSetState(fn(this.getState()));
   }
 
+  toJS(): T {
+    return this.getState();
+  }
+
   toJSON(): IJSON {
-    return this.getState() as any;
+    const state = this.getState() as any;
+
+    if (isFunction(state.toJSON)) {
+      return state.toJSON();
+    } else {
+      return state;
+    }
   }
 
   fromJSON(json: IJSON): T {
