@@ -26,7 +26,7 @@ stores are views into your state, they can trigger updates by setState or update
 ### Example Store
 
 ```typescript
-import { State } from "@stembord/state";
+import { State } from "@aicacia/state";
 
 const TODOS_STORE_NAME = "todos";
 const TODOS_INITIAL_STATE = {

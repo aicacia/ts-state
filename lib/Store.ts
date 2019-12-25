@@ -1,4 +1,4 @@
-import { IJSON } from "@stembord/json";
+import { IJSON } from "@aicacia/json";
 import { EventEmitter } from "events";
 import { isFunction } from "util";
 

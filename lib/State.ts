@@ -1,4 +1,4 @@
-import { IJSONObject, isJSON } from "@stembord/json";
+import { IJSONObject, isJSON } from "@aicacia/json";
 import { EventEmitter } from "events";
 import { Record } from "immutable";
 
