@@ -4,11 +4,11 @@
     "module": "commonjs",
     "moduleResolution": "node",
     "declaration": true,
-    "outDir": "./src",
+    "outDir": "./lib",
     "strict": true,
     "downlevelIteration": true,
     "lib": ["esnext"]
   },
-  "include": ["lib"],
-  "exclude": ["**/*.test.*"]
+  "include": ["src"],
+  "exclude": ["src/**/*.test.*"]
 }
