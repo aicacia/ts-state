@@ -1,109 +1,67 @@
 import * as tape from "tape";
+import { Record, RecordOf, List } from "immutable";
 import { State } from "./State";
 
-interface ICounter {
-  count: number;
-}
-
-interface ITestState {
-  counter: ICounter;
-}
-
-const INITIAL_STATE: ITestState = {
-  counter: {
-    count: 0
-  }
-};
-
 tape("State createStore, setState, updateState", (assert: tape.Test) => {
-  const state = new State(INITIAL_STATE),
-    counter = state.getStore("counter");
+  const TODO_LIST_NAME = "todo_list";
 
-  let eventSetStateCalled = false,
-    eventSetStateForCalled = false;
-
-  const metas: string[] = [];
-
-  state.on("set-state", () => {
-    eventSetStateCalled = true;
-  });
-
-  state.on("set-state-for", (name, state, meta) => {
-    eventSetStateForCalled = true;
-    metas.push(meta);
-    assert.equals(name, "counter");
-  });
-
-  counter.setState({ count: 1 }, "reset");
-  counter.updateState(({ count }) => ({ count: count + 1 }), "incement");
-
-  assert.deepEquals(metas, ["reset", "incement"]);
-
-  assert.deepEquals(state.getStateFor("counter"), { count: 2 });
-  assert.deepEquals(state.getState().toJSON(), { counter: { count: 2 } });
-  assert.deepEquals(counter.getState(), { count: 2 });
-
-  assert.equals(eventSetStateCalled, true);
-  assert.equals(eventSetStateForCalled, true);
-
-  assert.end();
-});
-
-tape(
-  "State no emit createStore, setState, updateState",
-  (assert: tape.Test) => {
-    const state = new State(INITIAL_STATE),
-      counter = state.getStore("counter");
-
-    let eventSetStateCalled = false,
-      eventSetStateForCalled = false;
-
-    const reset = () => {
-      eventSetStateCalled = false;
-      eventSetStateForCalled = false;
-    };
-
-    state.on("set-state", () => {
-      eventSetStateCalled = true;
-    });
-
-    state.on("set-state-for", name => {
-      eventSetStateForCalled = true;
-      assert.equals(name, "counter");
-    });
-
-    counter.setState({ count: 1 }, "reset");
-    assert.deepEquals(counter.getState(), { count: 1 });
-
-    assert.equals(eventSetStateCalled, true);
-    assert.equals(eventSetStateForCalled, true);
-
-    reset();
-
-    counter.noEmitSetState({ count: 0 });
-    assert.deepEquals(counter.getState(), { count: 0 });
-
-    assert.equals(eventSetStateCalled, false);
-    assert.equals(eventSetStateForCalled, false);
-
-    assert.end();
+  interface ITodo {
+    id: number;
+    text: string;
   }
-);
 
-tape("State/Store toJSON fromJSON", (assert: tape.Test) => {
-  const state = new State(INITIAL_STATE),
-    counter = state.getStore("counter");
-
-  assert.deepEquals(counter.toJSON(), { count: 0 });
-  counter.setStateJSON({ count: 2 });
-  assert.deepEquals(counter.toJSON(), { count: 2 });
-
-  state.setStateJSON({
-    counter: { count: 1 }
+  const Todo = Record<ITodo>({
+    id: 0,
+    text: "",
   });
-  assert.deepEquals(state.toJSON(), {
-    counter: { count: 1 }
+
+  interface ITodoList {
+    list: List<ITodo>;
+  }
+
+  const TodoList = Record<ITodoList>({
+    list: List(),
   });
+
+  const AppState = Record({
+    [TODO_LIST_NAME]: TodoList(),
+  });
+
+  const state = new State(AppState());
+
+  const createId = (() => {
+    let id = 0;
+    return () => ++id;
+  })();
+
+  const todoList = state.getView(TODO_LIST_NAME);
+
+  const createTodo = (text: string) =>
+    todoList.update((state) =>
+      state.update("list", (list) => list.push(Todo({ id: createId(), text })))
+    );
+
+  const removeTodoById = (id: number) =>
+    todoList.update((state) =>
+      state.update("list", (list) => {
+        const index = list.findIndex((todo) => todo.id === id);
+
+        if (index === -1) {
+          return list;
+        } else {
+          return list.remove(index);
+        }
+      })
+    );
+
+  assert.equal(todoList.getCurrent().list.size, 0);
+
+  createTodo("Hello, world!");
+  const todo = todoList.getCurrent().list.get(0) as RecordOf<ITodo>;
+  assert.equal(todo.text, "Hello, world!");
+
+  removeTodoById(todo.id);
+  assert.equal(todoList.getCurrent().list.size, 0);
 
   assert.end();
 });

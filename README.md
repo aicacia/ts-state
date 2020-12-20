@@ -1,5 +1,10 @@
 # ts-state
 
+[![license](https://img.shields.io/badge/license-MIT%2FApache--2.0-blue")](LICENSE-MIT)
+[![docs](https://img.shields.io/badge/docs-typescript-blue.svg)](https://aicacia.gitlab.io/libs/ts-state/)
+[![npm (scoped)](https://img.shields.io/npm/v/@aicacia/state)](https://www.npmjs.com/package/@aicacia/state)
+[![pipelines](https://gitlab.com/aicacia/libs/ts-state/badges/master/pipeline.svg)](https://gitlab.com/aicacia/libs/ts-state/-/pipelines)
+
 state management for applications
 
 ## Introduction to State
@@ -15,67 +20,61 @@ What we have tried to achieve with this library is the following architectural d
 3. Reduce the amount of cognitive overhead required.
 4. Make building your applications less about state and more about the features of the application.
 
-## States
+## State and Views
 
-a State is the single source of truth for applications, states have stores which are views in to your state that are used to update the state.
-
-## Stores
-
-stores are views into your state, they can trigger updates by setState or updateState
+a State is the single source of truth for applications, states can have views which are slices into your state that are used to update the main state.
 
 ### Example Store
 
 ```typescript
-import { State } from "@aicacia/state";
+const TODO_LIST_NAME = "todo_list";
 
-const TODOS_STORE_NAME = "todos";
-const TODOS_INITIAL_STATE = {
-  list: []
-};
-
-const APP_INITIAL_STATE = {
-  [TODOS_STORE_NAME]: TODOS_INITIAL_STATE
-};
-
-const state = new State(APP_INITIAL_STATE);
-type IState = typeof state.getState();
-
-let TODO_ID = 0;
-
-export interface ITodos {
-  list: [];
+interface ITodo {
+  id: number;
+  text: string;
 }
 
-export const store = state.getStore(TODOS_STORE_NAME);
+const Todo = Record<ITodo>({
+  id: 0,
+  text: "",
+});
 
-export const selectTodos = (state: IState) => state.get(TODOS_STORE_NAME).list;
+interface ITodoList {
+  list: List<ITodo>;
+}
 
-export const create = (text: string) => {
-  const id = TODO_ID++;
+const TodoList = Record<ITodoList>({
+  list: List(),
+});
 
-  store.updateState((state) => ({
-    ...state,
-    list: [
-      ...state.list,
-      {
-        id: id,
-        text: text
+const AppState = Record({
+  [TODO_LIST_NAME]: TodoList(),
+});
+
+const state = new State(AppState());
+
+const createId = (() => {
+  let id = 0;
+  return () => ++id;
+})();
+
+const todoList = state.getView(TODO_LIST_NAME);
+
+const createTodo = (text: string) =>
+  todoList.update((state) =>
+    state.update("list", (list) => list.push(Todo({ id: createId(), text })))
+  );
+
+const removeTodoById = (id: number) =>
+  todoList.update((state) =>
+    state.update("list", (list) => {
+      const index = list.findIndex((todo) => todo.id === id);
+
+      if (index === -1) {
+        return list;
+      } else {
+        return list.remove(index);
       }
-    ]
-  }));
-};
-
-export const remove = (id: number) => {
-  store.updateState((state) => {
-    const index = state.list.findIndex(todo => todo.id === id);
-
-    if (index !== -1) {
-      const newList = state.list.slice();
-      newList.splice(index, 1);
-      return { ...state, list: newList };
-    } else {
-      return state;
-    }
-  });
-};
+    })
+  );
 ```

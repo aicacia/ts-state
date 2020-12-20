@@ -1,2 +1,4 @@
+export type { IExtractRecordOf } from "./IExtractRecordOf";
+export type { IStateTypeOf } from "./IStateTypeOf";
 export { State } from "./State";
-export { Store } from "./Store";
+export { View } from "./View";
