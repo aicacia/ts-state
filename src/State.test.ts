@@ -54,6 +54,12 @@ tape("State createStore, setState, updateState", (assert: tape.Test) => {
       })
     );
 
+  let stateChangeCalled = 0;
+  let todoListChangeCalled = 0;
+
+  state.on("change", () => stateChangeCalled++);
+  todoList.on("change", () => todoListChangeCalled++);
+
   assert.equal(todoList.getCurrent().list.size, 0);
 
   createTodo("Hello, world!");
@@ -62,6 +68,9 @@ tape("State createStore, setState, updateState", (assert: tape.Test) => {
 
   removeTodoById(todo.id);
   assert.equal(todoList.getCurrent().list.size, 0);
+
+  assert.equal(stateChangeCalled, 2);
+  assert.equal(todoListChangeCalled, 2);
 
   assert.end();
 });

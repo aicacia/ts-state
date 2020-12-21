@@ -10,17 +10,11 @@ export interface View<
   P extends RecordOf<any>,
   T extends RecordOf<any>
 > {
-  on(event: "change", listener: (this: this, state: T) => void): this;
-  addEventListener(
-    event: "change",
-    listener: (this: this, state: T) => void
-  ): this;
-  off(event: "change", listener: (this: this, state: T) => void): this;
+  on(event: "change", listener: (state: T) => void): this;
+  addEventListener(event: "change", listener: (state: T) => void): this;
+  off(event: "change", listener: (state: T) => void): this;
   off(event: "change"): this;
-  removeEventListener(
-    event: "change",
-    listener: (this: this, state: T) => void
-  ): this;
+  removeEventListener(event: "change", listener: (state: T) => void): this;
   removeEventListener(event: "change"): this;
 }
 
