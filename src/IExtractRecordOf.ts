@@ -1,3 +1,3 @@
 import type { Record } from "immutable";
 
-export type ExtractRecordOf<T> = T extends Record<infer U> ? U : T;
+export type IExtractRecordOf<T> = T extends Record<infer U> ? U : T;

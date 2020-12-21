@@ -2,7 +2,7 @@ import { none } from "@aicacia/core";
 import type { IJSONObject } from "@aicacia/json";
 import { EventEmitter } from "events";
 import { fromJS, RecordOf } from "immutable";
-import type { ExtractRecordOf } from "./IExtractRecordOf";
+import type { IExtractRecordOf } from "./IExtractRecordOf";
 
 // tslint:disable-next-line: interface-name
 export interface State<T extends RecordOf<any>> {
@@ -33,9 +33,9 @@ export class State<T extends RecordOf<any>> extends EventEmitter {
     return this.current;
   }
 
-  getView<K extends Extract<keyof ExtractRecordOf<T>, string>>(
+  getView<K extends Extract<keyof IExtractRecordOf<T>, string>>(
     key: K
-  ): View<T, any, RecordOf<ExtractRecordOf<T>[K]>> {
+  ): View<T, any, RecordOf<IExtractRecordOf<T>[K]>> {
     return new View(this, key, none());
   }
 
