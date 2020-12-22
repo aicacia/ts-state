@@ -8,20 +8,20 @@ import type { IExtractRecordOf } from "./IExtractRecordOf";
 export interface State<T extends RecordOf<any>> {
   on(
     event: "change",
-    listener: (state: T, path: string[], action: string) => void
+    listener: (state: T, path: string[], action?: string) => void
   ): this;
   addEventListener(
     event: "change",
-    listener: (state: T, path: string[], action: string) => void
+    listener: (state: T, path: string[], action?: string) => void
   ): this;
   off(
     event: "change",
-    listener: (state: T, path: string[], action: string) => void
+    listener: (state: T, path: string[], action?: string) => void
   ): this;
   off(event: "change"): this;
   removeEventListener(
     event: "change",
-    listener: (state: T, path: string[], action: string) => void
+    listener: (state: T, path: string[], action?: string) => void
   ): this;
   removeEventListener(event: "change"): this;
 }
