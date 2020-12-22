@@ -6,16 +6,22 @@ import type { IExtractRecordOf } from "./IExtractRecordOf";
 
 // tslint:disable-next-line: interface-name
 export interface State<T extends RecordOf<any>> {
-  on(event: "change", listener: (state: T, path: string[]) => void): this;
+  on(
+    event: "change",
+    listener: (state: T, path: string[], action: string) => void
+  ): this;
   addEventListener(
     event: "change",
-    listener: (state: T, path: string[]) => void
+    listener: (state: T, path: string[], action: string) => void
   ): this;
-  off(event: "change", listener: (state: T, path: string[]) => void): this;
+  off(
+    event: "change",
+    listener: (state: T, path: string[], action: string) => void
+  ): this;
   off(event: "change"): this;
   removeEventListener(
     event: "change",
-    listener: (state: T, path: string[]) => void
+    listener: (state: T, path: string[], action: string) => void
   ): this;
   removeEventListener(event: "change"): this;
 }
@@ -39,13 +45,13 @@ export class State<T extends RecordOf<any>> extends EventEmitter {
     return new View(this, key, none());
   }
 
-  set(newState: T, path: string[] = []) {
+  set(newState: T, path: string[] = [], action?: string) {
     this.current = newState;
-    this.emit("change", this.current, path);
+    this.emit("change", this.current, path, action);
     return this;
   }
-  update(updateFn: (state: T) => T, path: string[] = []) {
-    return this.set(updateFn(this.current), path);
+  update(updateFn: (state: T) => T, path: string[] = [], action?: string) {
+    return this.set(updateFn(this.current), path, action);
   }
 
   toJSON(): IJSONObject {

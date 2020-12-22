@@ -10,16 +10,22 @@ export interface View<
   P extends RecordOf<any>,
   T extends RecordOf<any>
 > {
-  on(event: "change", listener: (state: T, path: string[]) => void): this;
+  on(
+    event: "change",
+    listener: (state: T, path: string[], action: string) => void
+  ): this;
   addEventListener(
     event: "change",
-    listener: (state: T, path: string[]) => void
+    listener: (state: T, path: string[], action: string) => void
   ): this;
-  off(event: "change", listener: (state: T, path: string[]) => void): this;
+  off(
+    event: "change",
+    listener: (state: T, path: string[], action: string) => void
+  ): this;
   off(event: "change"): this;
   removeEventListener(
     event: "change",
-    listener: (state: T, path: string[]) => void
+    listener: (state: T, path: string[], action: string) => void
   ): this;
   removeEventListener(event: "change"): this;
 }
@@ -50,16 +56,17 @@ export class View<
   getCurrent(): T {
     return this.state.getCurrent().getIn(this.path);
   }
-  set(newState: T) {
+  set(newState: T, action?: string) {
     this.state.set(
       this.state.getCurrent().setIn(this.path, newState),
-      this.path
+      this.path,
+      action
     );
     this.emit("change", this.getCurrent());
     return this;
   }
-  update(updateFn: (state: T) => T) {
-    return this.set(updateFn(this.getCurrent()));
+  update(updateFn: (state: T) => T, action?: string) {
+    return this.set(updateFn(this.getCurrent()), action);
   }
 
   getView<K extends Extract<keyof IExtractRecordOf<T>, string>>(

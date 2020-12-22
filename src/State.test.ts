@@ -37,29 +37,36 @@ tape("State createStore, setState, updateState", (assert: tape.Test) => {
   const todoList = state.getView(TODO_LIST_NAME);
 
   const createTodo = (text: string) =>
-    todoList.update((state) =>
-      state.update("list", (list) => list.push(Todo({ id: createId(), text })))
+    todoList.update(
+      (state) =>
+        state.update("list", (list) =>
+          list.push(Todo({ id: createId(), text }))
+        ),
+      "create"
     );
 
   const removeTodoById = (id: number) =>
-    todoList.update((state) =>
-      state.update("list", (list) => {
-        const index = list.findIndex((todo) => todo.id === id);
+    todoList.update(
+      (state) =>
+        state.update("list", (list) => {
+          const index = list.findIndex((todo) => todo.id === id);
 
-        if (index === -1) {
-          return list;
-        } else {
-          return list.remove(index);
-        }
-      })
+          if (index === -1) {
+            return list;
+          } else {
+            return list.remove(index);
+          }
+        }),
+      "remove"
     );
 
   let stateChangeCalled = 0;
   let todoListChangeCalled = 0;
 
-  state.on("change", (_newState, path) => {
+  state.on("change", (_newState, path, action) => {
     stateChangeCalled++;
     assert.deepEqual(path, [TODO_LIST_NAME]);
+    assert.true(typeof action === "string");
   });
   todoList.on("change", () => {
     todoListChangeCalled++;
