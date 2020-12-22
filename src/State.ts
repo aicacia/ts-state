@@ -5,12 +5,12 @@ import { fromJS, RecordOf } from "immutable";
 import type { IExtractRecordOf } from "./IExtractRecordOf";
 
 // tslint:disable-next-line: interface-name
-export interface State<T extends RecordOf<any>> {
+export interface State<T extends RecordOf<any>> extends EventEmitter {
   on(
     event: "change",
     listener: (state: T, path: string[], action?: string) => void
   ): this;
-  addEventListener(
+  addListener(
     event: "change",
     listener: (state: T, path: string[], action?: string) => void
   ): this;
@@ -19,11 +19,11 @@ export interface State<T extends RecordOf<any>> {
     listener: (state: T, path: string[], action?: string) => void
   ): this;
   off(event: "change"): this;
-  removeEventListener(
+  removeListener(
     event: "change",
     listener: (state: T, path: string[], action?: string) => void
   ): this;
-  removeEventListener(event: "change"): this;
+  removeAllListeners(event: "change"): this;
 }
 
 export class State<T extends RecordOf<any>> extends EventEmitter {

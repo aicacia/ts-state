@@ -9,19 +9,19 @@ export interface View<
   S extends RecordOf<any>,
   P extends RecordOf<any>,
   T extends RecordOf<any>
-> {
+> extends EventEmitter {
   on(event: "change", listener: (state: T, action?: string) => void): this;
-  addEventListener(
+  addListener(
     event: "change",
     listener: (state: T, action?: string) => void
   ): this;
   off(event: "change", listener: (state: T, action?: string) => void): this;
   off(event: "change"): this;
-  removeEventListener(
+  removeListener(
     event: "change",
     listener: (state: T, action?: string) => void
   ): this;
-  removeEventListener(event: "change"): this;
+  removeAllListeners(event: "change"): this;
 }
 
 export class View<
@@ -53,7 +53,7 @@ export class View<
   set(newState: T, action?: string) {
     this.state.set(
       this.state.getCurrent().setIn(this.path, newState),
-      this.path,
+      this.path.slice(),
       action
     );
     this.emit("change", this.getCurrent(), action);
