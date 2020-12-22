@@ -57,8 +57,13 @@ tape("State createStore, setState, updateState", (assert: tape.Test) => {
   let stateChangeCalled = 0;
   let todoListChangeCalled = 0;
 
-  state.on("change", () => stateChangeCalled++);
-  todoList.on("change", () => todoListChangeCalled++);
+  state.on("change", (_newState, path) => {
+    stateChangeCalled++;
+    assert.deepEqual(path, [TODO_LIST_NAME]);
+  });
+  todoList.on("change", () => {
+    todoListChangeCalled++;
+  });
 
   assert.equal(todoList.getCurrent().list.size, 0);
 

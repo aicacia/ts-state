@@ -10,11 +10,17 @@ export interface View<
   P extends RecordOf<any>,
   T extends RecordOf<any>
 > {
-  on(event: "change", listener: (state: T) => void): this;
-  addEventListener(event: "change", listener: (state: T) => void): this;
-  off(event: "change", listener: (state: T) => void): this;
+  on(event: "change", listener: (state: T, path: string[]) => void): this;
+  addEventListener(
+    event: "change",
+    listener: (state: T, path: string[]) => void
+  ): this;
+  off(event: "change", listener: (state: T, path: string[]) => void): this;
   off(event: "change"): this;
-  removeEventListener(event: "change", listener: (state: T) => void): this;
+  removeEventListener(
+    event: "change",
+    listener: (state: T, path: string[]) => void
+  ): this;
   removeEventListener(event: "change"): this;
 }
 
@@ -45,11 +51,14 @@ export class View<
     return this.state.getCurrent().getIn(this.path);
   }
   set(newState: T) {
-    this.state.set(this.state.getCurrent().setIn(this.path, newState));
+    this.state.set(
+      this.state.getCurrent().setIn(this.path, newState),
+      this.path
+    );
     this.emit("change", this.getCurrent());
     return this;
   }
-  update(updateFn: (current: T) => T) {
+  update(updateFn: (state: T) => T) {
     return this.set(updateFn(this.getCurrent()));
   }
 
