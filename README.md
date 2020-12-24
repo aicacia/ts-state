@@ -20,7 +20,7 @@ What we have tried to achieve with this library is the following architectural d
 3. Reduce the amount of cognitive overhead required.
 4. Make building your applications less about state and more about the features of the application.
 
-## State and Views
+## State and Stores
 
 a State is the single source of truth for applications, states can have views which are slices into your state that are used to update the main state.
 
@@ -34,47 +34,58 @@ interface ITodo {
   text: string;
 }
 
-const Todo = Record<ITodo>({
-  id: 0,
-  text: "",
-});
-
 interface ITodoList {
-  list: List<ITodo>;
+  list: ITodo[];
 }
 
-const TodoList = Record<ITodoList>({
-  list: List(),
-});
+const todoListInitalState: ITodoList = {
+  list: [],
+};
 
-const AppState = Record({
-  [TODO_LIST_NAME]: TodoList(),
-});
+function TodoListMutFromJSON(json: IJSONObject): ITodoListMut {
+  return {
+    list: (json.list as Array<IJSONObject>).map((json) => ({
+      id: json.id as number,
+      text: json.text as string,
+    })),
+  };
+}
 
-const state = new State(AppState());
+const state = new State(
+  {
+    [TODO_LIST_NAME]: todoListInitalState,
+  },
+  {
+    [TODO_LIST_NAME]: TodoListFromJSON,
+  }
+);
 
-const createId = (() => {
-  let id = 0;
-  return () => ++id;
-})();
+const todoList = state.getStore(TODO_LIST_NAME);
 
-const todoList = state.getView(TODO_LIST_NAME);
+const createTodo = (text: string) => {
+  const id = createId();
 
-const createTodo = (text: string) =>
-  todoList.update((state) =>
-    state.update("list", (list) => list.push(Todo({ id: createId(), text })))
+  todoList.update(
+    (state) => ({
+      ...state,
+      list: [...state.list, { id, text }],
+    }),
+    "create"
   );
+
+  return id;
+};
 
 const removeTodoById = (id: number) =>
-  todoList.update((state) =>
-    state.update("list", (list) => {
-      const index = list.findIndex((todo) => todo.id === id);
+  todoList.update((state) => {
+    const index = state.list.findIndex((todo) => todo.id === id);
 
-      if (index === -1) {
-        return list;
-      } else {
-        return list.remove(index);
-      }
-    })
-  );
+    if (index === -1) {
+      return state;
+    } else {
+      const newList = state.list.slice();
+      newList.splice(index, 1);
+      return { ...state, list: newList };
+    }
+  }, "remove");
 ```

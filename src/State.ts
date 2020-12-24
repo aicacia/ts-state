@@ -1,66 +1,108 @@
-import { none } from "@aicacia/core";
 import type { IJSONObject } from "@aicacia/json";
+import type { IFromJSON } from "./Store";
+import type { IStringKeyOf } from "./IStringKeyOf";
 import { EventEmitter } from "events";
-import { fromJS, RecordOf } from "immutable";
-import type { IExtractRecordOf } from "./IExtractRecordOf";
+import { Record as ImmutableRecord, RecordOf } from "immutable";
+import { Store } from "./Store";
 
 // tslint:disable-next-line: interface-name
-export interface State<T extends RecordOf<any>> extends EventEmitter {
+export interface State<T> extends EventEmitter {
   on(
     event: "change",
-    listener: (state: T, path: string[], action?: string) => void
+    listener: (state: RecordOf<T>, name: string, action?: string) => void
   ): this;
   addListener(
     event: "change",
-    listener: (state: T, path: string[], action?: string) => void
+    listener: (state: RecordOf<T>, name: string, action?: string) => void
   ): this;
   off(
     event: "change",
-    listener: (state: T, path: string[], action?: string) => void
+    listener: (state: RecordOf<T>, name: string, action?: string) => void
   ): this;
   off(event: "change"): this;
   removeListener(
     event: "change",
-    listener: (state: T, path: string[], action?: string) => void
+    listener: (state: RecordOf<T>, name: string, action?: string) => void
   ): this;
   removeAllListeners(event: "change"): this;
 }
 
-export class State<T extends RecordOf<any>> extends EventEmitter {
-  private current: T;
+type IStores<T> = {
+  [K in IStringKeyOf<T>]: Store<T, T[K]>;
+};
 
-  constructor(initialState: T) {
+export class State<T> extends EventEmitter {
+  public Record: ImmutableRecord.Factory<T>;
+  public current: RecordOf<T>;
+  public StoresRecord: ImmutableRecord.Factory<IStores<T>>;
+  public stores: RecordOf<IStores<T>>;
+
+  constructor(
+    initialState: T,
+    fromJSONs: Record<IStringKeyOf<T>, IFromJSON<T[IStringKeyOf<T>]>>
+  ) {
     super();
 
-    this.current = initialState;
+    this.Record = ImmutableRecord(initialState);
+    this.current = this.Record();
+    this.StoresRecord = ImmutableRecord(
+      this.current.toSeq().reduce((initialStores, _, key) => {
+        const name = key as IStringKeyOf<T>,
+          fromJSON = fromJSONs[name] as IFromJSON<T[IStringKeyOf<T>]>;
+
+        if (typeof fromJSON === "function") {
+          initialStores[name] = new Store(this, name, fromJSON);
+        } else {
+          throw new Error(`fromJSON function is required for store ${name}`);
+        }
+
+        return initialStores;
+      }, {} as IStores<T>)
+    );
+    this.stores = this.StoresRecord();
   }
 
   getCurrent() {
     return this.current;
   }
 
-  getView<K extends Extract<keyof IExtractRecordOf<T>, string>>(
-    key: K
-  ): View<T, any, RecordOf<IExtractRecordOf<T>[K]>> {
-    return new View(this, key, none());
+  getStore<K extends IStringKeyOf<T>>(name: K): Store<T, T[K]> {
+    return this.stores.get(name);
   }
 
-  set(newState: T, path: string[] = [], action?: string) {
-    this.current = newState;
-    this.emit("change", this.current, path, action);
+  clear() {
+    this.current = this.Record();
+    this.stores = this.StoresRecord();
     return this;
   }
-  update(updateFn: (state: T) => T, path: string[] = [], action?: string) {
-    return this.set(updateFn(this.current), path, action);
+
+  set(newState: RecordOf<T>, key: keyof T, action?: string) {
+    this.current = newState;
+    this.emit("change", this.current, key, action);
+    return this;
+  }
+  update(
+    updateFn: (state: RecordOf<T>) => RecordOf<T>,
+    key: keyof T,
+    action?: string
+  ) {
+    return this.set(updateFn(this.current), key, action);
   }
 
-  toJSON(): IJSONObject {
+  toJS(): IJSONObject {
     return this.current.toJS();
   }
+  toJSON(): T {
+    return this.current.toJSON();
+  }
   fromJSON(json: IJSONObject) {
-    this.current = fromJS(json);
+    this.current = this.stores
+      .toSeq()
+      .reduce(
+        (current, store, key) =>
+          current.set(key, store.fromJSON(json[key as string] as IJSONObject)),
+        this.Record()
+      );
     return this;
   }
 }
-
-import { View } from "./View";
