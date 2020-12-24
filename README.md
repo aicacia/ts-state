@@ -42,7 +42,7 @@ const todoListInitalState: ITodoList = {
   list: [],
 };
 
-function TodoListMutFromJSON(json: IJSONObject): ITodoListMut {
+function TodoListFromJSON(json: IJSONObject): ITodoList {
   return {
     list: (json.list as Array<IJSONObject>).map((json) => ({
       id: json.id as number,
