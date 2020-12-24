@@ -45,9 +45,9 @@ export class Store<S, T extends S[IStringKeyOf<S>]> extends EventEmitter {
     return this.state.getCurrent().get(this.name) as T;
   }
   set(newState: T, action?: string) {
-    this.state.set(
-      this.state.getCurrent().set(this.name, newState),
+    this.state.setFor(
       this.name,
+      this.state.getCurrent().set(this.name, newState),
       action
     );
     this.emit("change", this.getCurrent(), action);

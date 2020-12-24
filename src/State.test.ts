@@ -73,22 +73,26 @@ const removeTodoById = (id: number) =>
 
 tape("events (immutable)", (assert: tape.Test) => {
   let stateChangeCalled = 0,
+    stateChangeForCalled = 0,
     todoListChangeCalled = 0;
 
-  const onStateChange = (_newState: IState, name: string, action?: string) => {
+  const onStateChange = (_newState: IState, _action?: string) => {
       stateChangeCalled++;
-      assert.deepEqual(name, TODO_LIST_NAME);
-      assert.true(typeof action === "string");
+    },
+    onStateChangeFor = (_newState: IState, _name: string, _action?: string) => {
+      stateChangeForCalled++;
     },
     onStoreChange = () => todoListChangeCalled++;
 
   state.on("change", onStateChange);
+  state.on("change-for", onStateChangeFor);
   todoList.on("change", onStoreChange);
 
   const id = createTodo("Hello, world!");
   removeTodoById(id);
 
   assert.equal(stateChangeCalled, 2);
+  assert.equal(stateChangeForCalled, 2);
   assert.equal(todoListChangeCalled, 2);
 
   // clean up

@@ -9,22 +9,39 @@ import { Store } from "./Store";
 export interface State<T> extends EventEmitter {
   on(
     event: "change",
+    listener: (state: RecordOf<T>, action?: string) => void
+  ): this;
+  on(
+    event: "change-for",
     listener: (state: RecordOf<T>, name: string, action?: string) => void
   ): this;
   addListener(
     event: "change",
+    listener: (state: RecordOf<T>, action?: string) => void
+  ): this;
+  addListener(
+    event: "change-for",
     listener: (state: RecordOf<T>, name: string, action?: string) => void
   ): this;
   off(
     event: "change",
+    listener: (state: RecordOf<T>, action?: string) => void
+  ): this;
+  off(
+    event: "change-for",
     listener: (state: RecordOf<T>, name: string, action?: string) => void
   ): this;
   off(event: "change"): this;
+  off(event: "change-for"): this;
   removeListener(
     event: "change",
+    listener: (state: RecordOf<T>, action?: string) => void
+  ): this;
+  removeListener(
+    event: "change-for",
     listener: (state: RecordOf<T>, name: string, action?: string) => void
   ): this;
-  removeAllListeners(event: "change"): this;
+  removeAllListeners(event: "change" | "change-for"): this;
 }
 
 type IStores<T> = {
@@ -76,17 +93,25 @@ export class State<T> extends EventEmitter {
     return this;
   }
 
-  set(newState: RecordOf<T>, key: keyof T, action?: string) {
+  set(newState: RecordOf<T>, action?: string) {
     this.current = newState;
-    this.emit("change", this.current, key, action);
+    this.emit("change", this.current, action);
     return this;
   }
-  update(
+  setFor(name: IStringKeyOf<T>, newState: RecordOf<T>, action?: string) {
+    this.set(newState, action ? `${name}.${action}` : name);
+    this.emit("change-for", this.current, name, action);
+    return this;
+  }
+  update(updateFn: (state: RecordOf<T>) => RecordOf<T>) {
+    return this.set(updateFn(this.current));
+  }
+  updateFor(
+    name: IStringKeyOf<T>,
     updateFn: (state: RecordOf<T>) => RecordOf<T>,
-    key: keyof T,
     action?: string
   ) {
-    return this.set(updateFn(this.current), key, action);
+    return this.setFor(name, updateFn(this.current), action);
   }
 
   toJS(): IJSONObject {
@@ -96,13 +121,19 @@ export class State<T> extends EventEmitter {
     return this.current.toJSON();
   }
   fromJSON(json: IJSONObject) {
-    this.current = this.stores
-      .toSeq()
-      .reduce(
-        (current, store, key) =>
-          current.set(key, store.fromJSON(json[key as string] as IJSONObject)),
-        this.Record()
-      );
+    this.set(
+      this.stores
+        .toSeq()
+        .reduce(
+          (current, store, key) =>
+            current.set(
+              key,
+              store.fromJSON(json[key as string] as IJSONObject)
+            ),
+          this.Record()
+        ),
+      "fromJSON"
+    );
     return this;
   }
 }
