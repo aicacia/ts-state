@@ -1,5 +1,5 @@
 import * as tape from "tape";
-import { Record, RecordOf, List } from "immutable";
+import { fromJS, Map, Record, RecordOf, List } from "immutable";
 import { State, IStateTypeOf } from ".";
 import { IJSONObject } from "@aicacia/json";
 
@@ -203,6 +203,29 @@ tape("set, update", (assert: tape.Test) => {
 
   // clean up
   stateMut.clear();
+
+  assert.end();
+});
+
+tape("set, update", (assert: tape.Test) => {
+  const state = new State(
+    {
+      test: Map({
+        nested: Map({
+          count: 0,
+        }),
+      }),
+    },
+    {
+      test: fromJS,
+    }
+  );
+
+  state.on("change", () => {
+    assert.fail("updates without changes should not trigger change events");
+  });
+
+  state.getStore("test").update((state) => state.setIn(["nested", "count"], 0));
 
   assert.end();
 });

@@ -88,14 +88,16 @@ export class State<T> extends EventEmitter {
   }
 
   clear() {
-    this.current = this.Record();
     this.stores = this.StoresRecord();
+    this.set(this.Record());
     return this;
   }
 
   set(newState: RecordOf<T>, action?: string) {
-    this.current = newState;
-    this.emit("change", this.current, action);
+    if (newState !== this.current) {
+      this.current = newState;
+      this.emit("change", this.current, action);
+    }
     return this;
   }
   setFor(name: IStringKeyOf<T>, newState: RecordOf<T>, action?: string) {
