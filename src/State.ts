@@ -100,20 +100,27 @@ export class State<T> extends EventEmitter {
     }
     return this;
   }
-  setFor(name: IStringKeyOf<T>, newState: RecordOf<T>, action?: string) {
-    this.set(newState, action ? `${name}.${action}` : name);
+  setFor(name: IStringKeyOf<T>, newState: T[IStringKeyOf<T>], action?: string) {
+    this.set(
+      this.current.set(name, newState),
+      action ? `${name}.${action}` : name
+    );
     this.emit("change-for", this.current, name, action);
     return this;
   }
-  update(updateFn: (state: RecordOf<T>) => RecordOf<T>) {
-    return this.set(updateFn(this.current));
+  update(updateFn: (state: RecordOf<T>) => RecordOf<T>, action?: string) {
+    return this.set(updateFn(this.current), action);
   }
   updateFor(
     name: IStringKeyOf<T>,
-    updateFn: (state: RecordOf<T>) => RecordOf<T>,
+    updateFn: (state: T[IStringKeyOf<T>]) => T[IStringKeyOf<T>],
     action?: string
   ) {
-    return this.setFor(name, updateFn(this.current), action);
+    return this.setFor(
+      name,
+      updateFn(this.current.get(name) as T[IStringKeyOf<T>]),
+      action
+    );
   }
 
   toJS(): IJSONObject {

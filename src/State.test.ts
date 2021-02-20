@@ -98,6 +98,7 @@ tape("events (immutable)", (assert: tape.Test) => {
   // clean up
   state.clear();
   state.off("change", onStateChange);
+  state.off("change-for", onStateChangeFor);
   todoList.off("change", onStoreChange);
 
   assert.end();
